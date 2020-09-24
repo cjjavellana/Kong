@@ -32,3 +32,4 @@ make install
 
 ADD start-kong.sh /
 
+ENTRYPOINT ["./start-kong.sh"]
