@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  db:
+    image: postgres
+    restart: always
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    environment: 
+      POSTGRES_PASSWORD: password
+  kong:
+    build: .
+    depends_on:
+      - db
