@@ -7,4 +7,7 @@ Building
 $ docker build -t kong:latest
 ```
 
-
+Running
+```
+$ docker-compose up kong
+```

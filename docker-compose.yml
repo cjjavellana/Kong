@@ -7,7 +7,14 @@ services:
       - ./pgdata:/var/lib/postgresql/data
     environment: 
       POSTGRES_PASSWORD: password
+      POSTGRES_USER: kong
+      POSTGRES_DB: kong
   kong:
     build: .
+    volumes:
+      - ./kong:/etc/kong
     depends_on:
       - db
+    environment:
+      POSTGRES_PASSWORD: password
+    command: ["./wait-for-postgres.sh", "db", "./start-kong.sh"]

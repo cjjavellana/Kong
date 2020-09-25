@@ -30,6 +30,7 @@ git checkout tags/2.1.4 -b 2.1.4 && \
 eval $(luarocks path --bin) && \
 make install
 
+ADD wait-for-postgres.sh /
 ADD start-kong.sh /
 
 ENTRYPOINT ["./start-kong.sh"]
