@@ -1,1 +1,5 @@
-pgdata/*
+pgdata/pg_*
+pgdata/PG_*
+pgdata/base
+pgdata/global
+pgdata/post*
