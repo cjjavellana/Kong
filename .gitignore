@@ -3,3 +3,5 @@ pgdata/PG_*
 pgdata/base
 pgdata/global
 pgdata/post*
+.DS_Store
+.idea
