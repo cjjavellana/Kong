@@ -3,13 +3,16 @@ package main
 import (
 	"cjavellana.me/kong/smitz/internal/pkg/cfg"
 	"cjavellana.me/kong/smitz/internal/pkg/cyclops"
-	"fmt"
+	"log"
 )
 
 func main() {
 	config := cfg.ReadConfig()
-	fmt.Printf("Hello %s \n", config.CyclopsUrl)
-
+	log.Printf("Cyclops Url: %s \n", config.CyclopsUrl)
+	
 	mgtServer := cyclops.New(config)
-	mgtServer.Register()
+	err := mgtServer.Register()
+	if err != nil {
+		log.Fatalf("Unable to register self in Cyclops, %v\n", err)
+	}
 }

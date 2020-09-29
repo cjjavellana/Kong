@@ -5,7 +5,6 @@ import (
 	"cjavellana.me/kong/smitz/internal/pkg/cfg"
 	"cjavellana.me/kong/smitz/internal/pkg/system"
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -25,16 +24,18 @@ func New(config *cfg.Config) *Cyclops {
 // to its management server (cyclops)
 
 // Registers this node (where smitz is running) to the management server (cyclops)
-func (c *Cyclops) Register(){
+func (c *Cyclops) Register() error {
 	ip, err := system.HostIP()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	err = c.sendToCyclops(ip)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }
 
 func (c *Cyclops) sendToCyclops(hostIP string) error {
