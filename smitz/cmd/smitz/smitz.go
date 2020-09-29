@@ -1,7 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"cjavellana.me/kong/smitz/internal/pkg/cfg"
+	"cjavellana.me/kong/smitz/internal/pkg/cyclops"
+	"fmt"
+)
 
 func main() {
-	fmt.Println("Hello, Smithz")
+	config := cfg.ReadConfig()
+	fmt.Printf("Hello %s \n", config.CyclopsUrl)
+
+	mgtServer := cyclops.New(config)
+	mgtServer.Register()
 }

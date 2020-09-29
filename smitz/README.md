@@ -33,6 +33,12 @@ Example `config-map` for `k8` or `Openshift`:
 TODO (cjavellana): Add Config Map Configuration 
 ```
 
+### Starting via the command line
+
+```bash
+$ smitz --cyclops-url ${CYCLOPS_URL}
+```
+
 ## APIs
 
 All Kong 2.1.x admin APIs are supported. See [Admin API](https://docs.konghq.com/2.1.x/admin-api/)
