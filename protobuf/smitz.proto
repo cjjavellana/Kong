@@ -1,0 +1,50 @@
+syntax = "proto3";
+package gw;
+
+// import "google/protobuf/timestamp.proto";
+
+//[go_lang options start]
+option go_package = "internal/pkg/ipc";
+//[go_lang options end]
+
+service Smitz {
+
+  rpc NodeInfo(NodeInfoRequest) returns (NodeInfoResponse) {}
+  rpc GetStatus(KongStatusRequest) returns (KongStatusResponse) {}
+
+}
+
+message NodeInfoRequest{
+}
+
+message Plugins {
+  message AvailableOnServer {
+    repeated string pluginName = 1;
+  }
+  message EnabledInCluster {
+    repeated string pluginName = 1;
+  }
+
+  AvailableOnServer availableOnServer = 1;
+  EnabledInCluster enabledInCluster = 2;
+}
+
+message Configuration {
+  repeated string name = 1;
+}
+
+message NodeInfoResponse{
+  string hostname = 1;
+  string nodeId = 2;
+  string luaVersion = 3;
+  Plugins plugins = 4;
+  Configuration configuration = 5;
+  string tagLine = 6;
+  string version = 7;
+}
+
+message KongStatusRequest {
+}
+
+message KongStatusResponse {
+}
