@@ -9,6 +9,9 @@ type Config struct {
 	// the api key that is used to authenticate
 	// this client
 	CyclopsApiKey string
+
+	// Kong's Admin Url
+	KongAdminUrl string
 }
 
 func ReadConfig() *Config {
@@ -19,15 +22,22 @@ func ReadConfig() *Config {
 	)
 
 	cyclopsApiKey := flag.String(
-			"cyclops-api-key",
-			"-",
-			"The API Key to the cyclops management server",
-		)
+		"cyclops-api-key",
+		"-",
+		"The API Key to the cyclops management server",
+	)
+
+	kongAdminUrl := flag.String(
+		"kong-admin-url",
+		"http://127.0.0.1:8001",
+		"Kong's Admin Url",
+	)
 
 	flag.Parse()
 
 	return &Config{
-		CyclopsUrl: *cyclopsUrl,
+		CyclopsUrl:    *cyclopsUrl,
 		CyclopsApiKey: *cyclopsApiKey,
+		KongAdminUrl:  *kongAdminUrl,
 	}
 }

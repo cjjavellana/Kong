@@ -29,7 +29,7 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
-	ipc.RegisterSmitzServer(s, &rpc.Smitz{})
+	ipc.RegisterSmitzServer(s, rpc.New(config.KongAdminUrl))
 
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
