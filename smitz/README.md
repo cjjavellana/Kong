@@ -64,3 +64,30 @@ $ grpcurl -plaintext localhost:8686 list kong.proxy.Admin
 kong.proxy.Admin.GetStatus
 kong.proxy.Admin.NodeInfo
 ```
+
+Calling a gRPC method
+```bash
+$ grpcurl -plaintext localhost:8686 kong.proxy.Admin/NodeInfo
+{
+  "plugins": {
+    "availableOnServer": {
+      "pluginName": [
+        "One",
+        "Two"
+      ]
+    },
+    "enabledInCluster": {
+      "pluginName": [
+        "Three",
+        "Four"
+      ]
+    }
+  },
+  "configuration": {
+    "name": [
+      "One",
+      "Two"
+    ]
+  }
+}
+```
