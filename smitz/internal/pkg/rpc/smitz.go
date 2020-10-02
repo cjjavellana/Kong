@@ -7,19 +7,19 @@ import (
 	"context"
 )
 
-type Smitz struct {
-	ipc.UnimplementedSmitzServer
+type KongAdminProxy struct {
+	ipc.UnimplementedAdminServer
 
 	kongAdmin *kong.Admin
 }
 
-func New(adminUrl string) *Smitz {
-	return &Smitz{
+func New(adminUrl string) *KongAdminProxy {
+	return &KongAdminProxy{
 		kongAdmin: kong.New(adminUrl),
 	}
 }
 
-func (s *Smitz) NodeInfo(ctx context.Context, in *ipc.NodeInfoRequest) (*ipc.NodeInfoResponse, error) {
+func (s *KongAdminProxy) NodeInfo(ctx context.Context, in *ipc.NodeInfoRequest) (*ipc.NodeInfoResponse, error) {
 	return &ipc.NodeInfoResponse{
 		Plugins: &ipc.Plugins{
 			AvailableOnServer: &ipc.Plugins_AvailableOnServer{

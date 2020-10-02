@@ -12,6 +12,8 @@ type Config struct {
 
 	// Kong's Admin Url
 	KongAdminUrl string
+
+	SmitzPort string
 }
 
 func ReadConfig() *Config {
@@ -33,11 +35,14 @@ func ReadConfig() *Config {
 		"Kong's Admin Url",
 	)
 
+	smitzPort := flag.String("smitz-port", "8686", "The Smitz gRPC Port")
+
 	flag.Parse()
 
 	return &Config{
 		CyclopsUrl:    *cyclopsUrl,
 		CyclopsApiKey: *cyclopsApiKey,
 		KongAdminUrl:  *kongAdminUrl,
+		SmitzPort:     *smitzPort,
 	}
 }

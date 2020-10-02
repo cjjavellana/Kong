@@ -1,5 +1,5 @@
 syntax = "proto3";
-package gw;
+package kong.proxy;
 
 // import "google/protobuf/timestamp.proto";
 
@@ -7,7 +7,7 @@ package gw;
 option go_package = "internal/pkg/ipc";
 //[go_lang options end]
 
-service Smitz {
+service Admin {
 
   rpc NodeInfo(NodeInfoRequest) returns (NodeInfoResponse) {}
   rpc GetStatus(KongStatusRequest) returns (KongStatusResponse) {}

@@ -9,5 +9,5 @@ This directory contains protobuf message definitions used between Cyclops & Smit
 2. Generating Protobuf Stubs
 
     ```bash
-    $ protoc -I=./ -I=./include --go_out=../smitz --go-grpc_out=../smitz ./smitz.proto
+    $ protoc -I=./ -I=./include --go_out=../smitz --go-grpc_out=../smitz ./kong_admin_proxy.proto
     ```
