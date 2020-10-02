@@ -50,3 +50,17 @@ If you are on macOS, you can install [grpcurl](https://github.com/fullstorydev/g
 ```bash
 $ brew install grpcurl
 ```
+
+Listing out Smitz gRPC endpoints.
+```bash
+$ grpcurl -plaintext localhost:8686 list
+grpc.reflection.v1alpha.ServerReflection
+kong.proxy.Admin
+```
+
+Inspecting the detail of a gRPC method
+```bash
+$ grpcurl -plaintext localhost:8686 list kong.proxy.Admin
+kong.proxy.Admin.GetStatus
+kong.proxy.Admin.NodeInfo
+```
