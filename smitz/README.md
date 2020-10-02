@@ -43,4 +43,10 @@ $ smitz --cyclops-url ${CYCLOPS_URL}
 
 All Kong 2.1.x admin APIs are supported. See [Admin API](https://docs.konghq.com/2.1.x/admin-api/)
 
+## Testing gRPC Endpoints
 
+If you are on macOS, you can install [grpcurl](https://github.com/fullstorydev/grpcurl) via Homebrew.
+
+```bash
+$ brew install grpcurl
+```
