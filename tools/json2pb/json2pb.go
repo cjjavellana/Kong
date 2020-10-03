@@ -11,6 +11,10 @@ import (
 	"strings"
 )
 
+const (
+	KeyValuePairMapKind = 100
+)
+
 // Represents an attribute of the message
 type MessageAttribute struct {
 	Type       interface{}
@@ -49,11 +53,11 @@ func prettyPrint(message *Message, indent int) {
 
 	for _, v := range message.Attribute {
 		if v.MessageDef != nil {
-			prettyPrint(v.MessageDef, indent + 1)
+			prettyPrint(v.MessageDef, indent+1)
 		}
 
 		jsonName := fmt.Sprintf("[json_name = \"%s\"];", v.JSONName)
-		fmt.Println(strings.Repeat("\t", indent + 1), v.Type, v.Name, "=", v.Ordinal, jsonName)
+		fmt.Println(strings.Repeat("\t", indent+1), v.Type, v.Name, "=", v.Ordinal, jsonName)
 	}
 
 	fmt.Println(tab, "}")
@@ -70,11 +74,7 @@ func prettyPrint(message *Message, indent int) {
 //		}
 //	}
 //
-//	@param messageParent is an element that we will attach a new Message element to.
-//	For example:
-//		(messageParent)
-//		  	   |
-//   	 (new message)
+//	@param message is an element that we will attach a new Message element to.
 func createPBMessageDefinition(jsonElement *map[string]interface{}, message *Message) {
 
 	for k, elem := range *jsonElement {
@@ -84,6 +84,21 @@ func createPBMessageDefinition(jsonElement *map[string]interface{}, message *Mes
 		//log.Println("Is Map: ", v.Kind() == reflect.Map)
 
 		switch v.Kind() {
+		case reflect.Slice:
+			log.Println(k, " :: ", elem)
+			e := elem.([]interface{})
+			if len(e) == 0 {
+				// If it's just an array with no element. Assume string array.
+				// Generate a protobuf message definition as follows:
+				// repeat string fieldName = <ordinal>;
+				addRepeatedField(k, message, "string")
+			} else {
+				isArrayOfSimpleDataTypes, dataType := IsKnownArrayDataType(&e)
+				log.Println(k, " :: ", isArrayOfSimpleDataTypes, " :: ", dataType)
+				if isArrayOfSimpleDataTypes {
+					addRepeatedField(k, message, dataType)
+				}
+			}
 		// Simple types
 		case reflect.String, reflect.Float64, reflect.Bool:
 			attr := MessageAttribute{
@@ -138,6 +153,65 @@ func createPBMessageDefinition(jsonElement *map[string]interface{}, message *Mes
 			log.Printf("No handler for %s, Type %s\n", k, v.Kind())
 		}
 	}
+}
+
+func addRepeatedField(jsonName string, message *Message, dataType string) {
+	attr := MessageAttribute{
+		Type:       fmt.Sprintf("repeat %s", dataType),
+		Name:       toCamelCaseWithFirstCharInLowerCase(jsonName),
+		Ordinal:    len(message.Attribute) + 1,
+		JSONName:   jsonName,
+		MessageDef: nil,
+	}
+
+	message.Attribute = append(message.Attribute, attr)
+}
+
+// Returns true if all of the array elements are of the same datatype
+// and is one of: string, float
+func IsKnownArrayDataType(element *[]interface{}) (bool, string) {
+	var expectedKind reflect.Kind
+	for _, v := range *element {
+		kind := reflect.ValueOf(v).Kind()
+
+		switch kind {
+		case reflect.Map:
+			m := v.(map[string]interface{})
+			// check if this is a standard name, value pair map
+			var mapKind int
+			if m["name"] != nil && m["value"] != nil {
+				mapKind = KeyValuePairMapKind
+			}
+
+			if expectedKind == 0 {
+				expectedKind = reflect.Kind(mapKind)
+				continue
+			}
+
+			if expectedKind != reflect.Kind(mapKind) {
+				return false, ""
+			}
+
+			return true, "KeyValuePair"
+		case reflect.String, reflect.Float64, reflect.Float32, reflect.Uint8:
+			// set expected kind to the first element
+			// that we see.
+			if expectedKind == 0 {
+				expectedKind = kind
+				continue
+			}
+
+			if expectedKind != kind {
+				return false, ""
+			}
+		default:
+			// kind is not one of datatype defined above
+			return false, ""
+		}
+
+	}
+
+	return true, kindToProtoBufType(expectedKind)
 }
 
 // Determines whether `element`'s value is of the same type
