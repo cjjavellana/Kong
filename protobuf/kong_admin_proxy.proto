@@ -2,6 +2,7 @@ syntax = "proto3";
 package kong.proxy;
 
 // import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
 
 //[go_lang options start]
 option go_package = "internal/pkg/ipc";
@@ -18,8 +19,8 @@ message NodeInfoRequest{
 }
 
 message Plugins {
-  map<string, bool> availableOnServer = 1;
-  repeated string enabledInCluster = 2;
+  map<string, bool> availableOnServer = 1 [json_name = "available_on_server"];
+  repeated string enabledInCluster = 2 [json_name = "enabled_in_cluster"];
 }
 
 message KeyValuePair {
@@ -29,11 +30,21 @@ message KeyValuePair {
 
 message Configuration {
   repeated string plugins = 1;
-  string cassandraReadConsistency = 2;
-  repeated string adminListen = 3;
-  string proxyAccessLog = 4;
-  repeated KeyValuePair nginxStreamDirectives = 5;
-  string cassandraUsername = 6;
+  string cassandraReadConsistency = 2 [json_name = "cassandra_read_consistency"];
+  repeated string adminListen = 3 [json_name = "admin_listen"];
+  string proxyAccessLog = 4  [json_name = "proxy_access_log"];
+  repeated KeyValuePair nginxStreamDirectives = 5 [json_name = "nginx_stream_directives"];
+  string cassandraUsername = 6 [json_name = "cassandra_username"];
+  string nginxUpstreamKeepAlive = 7 [json_name = "nginx_upstream_keepalive"];
+  uint32 dnsStaleTTL = 8 [json_name = "dns_stale_ttl"];
+  repeated KeyValuePair nginxProxyDirectives = 9;
+  repeated KeyValuePair nginxMainDirectives = 10;
+  map<string, bool> loadedPlugins = 11 [json_name = "loaded_plugins"];
+  bool adminSSLEnabled = 12 [json_name = "admin_ssl_enabled"];
+  uint32 upstreamKeepAliveIdleTimeout = 13 [json_name = "upstream_keepalive_idle_timeout"];
+  uint32 dbCacheTTL = 14 [json_name = "db_cache_ttl"];
+  string nginxHTTPSSLProtocols = 15 [json_name = "nginx_http_ssl_protocols"];
+  string cassandraWriteConsistency = 16 [json_name = "cassandra_write_consistency"];
 }
 
 message Timers {
