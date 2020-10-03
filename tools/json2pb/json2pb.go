@@ -39,23 +39,24 @@ func main() {
 
 	rootMessage := Message{MessageName: "RootMessage"}
 	createPBMessageDefinition(&result, &rootMessage)
-	prettyPrint(&rootMessage)
+	prettyPrint(&rootMessage, 0)
 }
 
-func prettyPrint(message *Message) {
+func prettyPrint(message *Message, indent int) {
 
-	fmt.Println("message", message.MessageName, "{")
+	tab := strings.Repeat("\t", indent)
+	fmt.Println(tab, "message", message.MessageName, "{")
 
 	for _, v := range message.Attribute {
 		if v.MessageDef != nil {
-			prettyPrint(v.MessageDef)
+			prettyPrint(v.MessageDef, indent + 1)
 		}
 
 		jsonName := fmt.Sprintf("[json_name = \"%s\"];", v.JSONName)
-		fmt.Println(" ", v.Type, v.Name, "=", v.Ordinal, jsonName)
+		fmt.Println(strings.Repeat("\t", indent + 1), v.Type, v.Name, "=", v.Ordinal, jsonName)
 	}
 
-	fmt.Println("}")
+	fmt.Println(tab, "}")
 }
 
 // @param jsonElement may be
@@ -102,7 +103,7 @@ func createPBMessageDefinition(jsonElement *map[string]interface{}, message *Mes
 			// of a single type, float, bool etc
 			e := elem.(map[string]interface{})
 
-			canBeRepresentedAsMap, protoBufDataType := canBeRepresentedAsProbufMap(&e)
+			canBeRepresentedAsMap, protoBufDataType := canBeRepresentedAsProtobufMap(&e)
 			if canBeRepresentedAsMap {
 				// append the newly created message to its parent
 				attr := MessageAttribute{
@@ -140,7 +141,7 @@ func createPBMessageDefinition(jsonElement *map[string]interface{}, message *Mes
 }
 
 // Determines whether `element`'s value is of the same type
-func canBeRepresentedAsProbufMap(element *map[string]interface{}) (bool, string) {
+func canBeRepresentedAsProtobufMap(element *map[string]interface{}) (bool, string) {
 	var expectedKind reflect.Kind
 	for _, v := range *element {
 		kind := reflect.ValueOf(v).Kind()
