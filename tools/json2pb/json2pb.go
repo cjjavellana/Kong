@@ -15,6 +15,11 @@ const (
 	KeyValuePairMapKind = 100
 )
 
+type Args struct {
+	jsonFile   string
+	outputFile string
+}
+
 // Represents an attribute of the message
 type MessageAttribute struct {
 	Type       interface{}
@@ -30,10 +35,10 @@ type Message struct {
 }
 
 func main() {
-	fileToRead := getFileToReadFromArgs()
-	log.Printf("Generating Protobuf Schema from: %s\n", fileToRead)
+	args := getFileToReadFromArgs()
+	log.Printf("Generating Protobuf Schema from: %s\n", args.jsonFile)
 
-	byteValue, err := readFile(fileToRead)
+	byteValue, err := readFile(args.jsonFile)
 
 	var result map[string]interface{}
 	err = json.Unmarshal(byteValue, &result)
@@ -93,7 +98,7 @@ func createPBMessageDefinition(jsonElement *map[string]interface{}, message *Mes
 				// repeat string fieldName = <ordinal>;
 				addRepeatedField(k, message, "string")
 			} else {
-				isArrayOfSimpleDataTypes, dataType := IsKnownArrayDataType(&e)
+				isArrayOfSimpleDataTypes, dataType := isKnownArrayDataType(&e)
 				log.Println(k, " :: ", isArrayOfSimpleDataTypes, " :: ", dataType)
 				if isArrayOfSimpleDataTypes {
 					addRepeatedField(k, message, dataType)
@@ -169,7 +174,9 @@ func addRepeatedField(jsonName string, message *Message, dataType string) {
 
 // Returns true if all of the array elements are of the same datatype
 // and is one of: string, float
-func IsKnownArrayDataType(element *[]interface{}) (bool, string) {
+//
+// Under normal circumstances, an array is composed of a single datatype.
+func isKnownArrayDataType(element *[]interface{}) (bool, string) {
 	var expectedKind reflect.Kind
 	for _, v := range *element {
 		kind := reflect.ValueOf(v).Kind()
@@ -177,33 +184,17 @@ func IsKnownArrayDataType(element *[]interface{}) (bool, string) {
 		switch kind {
 		case reflect.Map:
 			m := v.(map[string]interface{})
-			// check if this is a standard name, value pair map
-			var mapKind int
-			if m["name"] != nil && m["value"] != nil {
-				mapKind = KeyValuePairMapKind
+
+			if isKeyValuePairMap(m) {
+				return true, "KeyValuePair"
 			}
 
-			if expectedKind == 0 {
-				expectedKind = reflect.Kind(mapKind)
-				continue
+			if isListener(m) {
+				return true, "Listener"
 			}
 
-			if expectedKind != reflect.Kind(mapKind) {
-				return false, ""
-			}
-
-			return true, "KeyValuePair"
 		case reflect.String, reflect.Float64, reflect.Float32, reflect.Uint8:
-			// set expected kind to the first element
-			// that we see.
-			if expectedKind == 0 {
-				expectedKind = kind
-				continue
-			}
-
-			if expectedKind != kind {
-				return false, ""
-			}
+			return true, kindToProtoBufType(expectedKind)
 		default:
 			// kind is not one of datatype defined above
 			return false, ""
@@ -211,7 +202,7 @@ func IsKnownArrayDataType(element *[]interface{}) (bool, string) {
 
 	}
 
-	return true, kindToProtoBufType(expectedKind)
+	return false, ""
 }
 
 // Determines whether `element`'s value is of the same type
@@ -286,9 +277,13 @@ func readFile(fileToRead string) ([]byte, error) {
 	return ioutil.ReadAll(jsonFile)
 }
 
-func getFileToReadFromArgs() string {
-	file := flag.String("file", "", "The JSON file to parse")
+func getFileToReadFromArgs() Args {
+	jsonFile := flag.String("file", "", "The JSON file to parse")
+	outputFile := flag.String("out", "", "The file where the output will be written to")
 	flag.Parse()
 
-	return *file
+	return Args{
+		jsonFile:   *jsonFile,
+		outputFile: *outputFile,
+	}
 }
