@@ -84,10 +84,7 @@ func prettyPrint(message *Message, indent int) {
 func createPBMessageDefinition(jsonElement *map[string]interface{}, message *Message) {
 
 	for k, elem := range *jsonElement {
-		//log.Printf("%s: Type: %s, %s\n", k, reflect.TypeOf(k), reflect.TypeOf(v))
-
 		v := reflect.ValueOf(elem)
-		//log.Println("Is Map: ", v.Kind() == reflect.Map)
 
 		switch v.Kind() {
 		case reflect.Slice:

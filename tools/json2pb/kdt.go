@@ -15,8 +15,7 @@ import "google/protobuf/any.proto";
 message KeyValuePair {
 	string name = 1 [json_name="name"];
 	string value = 2 [json_name="value"];
-}
-`
+}`
 }
 
 func listenerMessageDefinition() string {
@@ -32,8 +31,7 @@ message Listener {
 	int32 port = 8 [json_name="port"];
 	bool http2 = 9 [json_name="http2"];
 	bool bind = 10 [json_name="bind"];
-}
-`
+}`
 }
 
 // Checks whether map `m` has a `name` and `value` members
