@@ -11,10 +11,6 @@ import (
 	"strings"
 )
 
-const (
-	KeyValuePairMapKind = 100
-)
-
 type Args struct {
 	jsonFile   string
 	outputFile string
@@ -52,6 +48,11 @@ func main() {
 }
 
 func prettyPrint(message *Message, indent int) {
+	// Top level? Print Known Data Types
+	if indent == 0 {
+		fmt.Println(keyValuePairMessageDefinition())
+		fmt.Println(listenerMessageDefinition())
+	}
 
 	tab := strings.Repeat("\t", indent)
 	fmt.Println(tab, "message", message.MessageName, "{")
@@ -162,7 +163,7 @@ func createPBMessageDefinition(jsonElement *map[string]interface{}, message *Mes
 
 func addRepeatedField(jsonName string, message *Message, dataType string) {
 	attr := MessageAttribute{
-		Type:       fmt.Sprintf("repeat %s", dataType),
+		Type:       fmt.Sprintf("repeated %s", dataType),
 		Name:       toCamelCaseWithFirstCharInLowerCase(jsonName),
 		Ordinal:    len(message.Attribute) + 1,
 		JSONName:   jsonName,
@@ -236,7 +237,8 @@ func kindToProtoBufType(kind reflect.Kind) string {
 		return "bool"
 	}
 
-	return ""
+	// We got not idea what kind it is. Assume string.
+	return "string"
 }
 
 func toCamelCaseWithFirstCharCapitalized(s string) string {

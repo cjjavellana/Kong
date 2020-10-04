@@ -1,22 +1,7 @@
 syntax = "proto3";
 package kong.proxy;
 
-// import "google/protobuf/timestamp.proto";
 import "google/protobuf/any.proto";
-
-//[go_lang options start]
-option go_package = "internal/pkg/ipc";
-//[go_lang options end]
-
-service Admin {
-
-  rpc NodeInfo(NodeInfoRequest) returns (NodeInfoResponse) {}
-  rpc GetStatus(KongStatusRequest) returns (KongStatusResponse) {}
-
-}
-
-message NodeInfoRequest{
-}
 
 message KeyValuePair {
   string name = 1 [json_name = "name"];
@@ -45,7 +30,7 @@ message Configuration {
   string adminAccessLog = 1 [json_name = "admin_access_log"];
   string nginxProxyRealIpRecursive = 2 [json_name = "nginx_proxy_real_ip_recursive"];
   bool anonymousReports = 3 [json_name = "anonymous_reports"];
-  repeated string statusListen = 4 [json_name = "status_listen"];
+  repeated google.protobuf.Any statusListen = 4 [json_name = "status_listen"];
   map<string, bool> loadedPlugins = 5 [json_name = "loaded_plugins"];
   string prefix = 6 [json_name = "prefix"];
   float upstreamKeepaliveMaxRequests = 7 [json_name = "upstream_keepalive_max_requests"];
@@ -57,7 +42,7 @@ message Configuration {
   string nginxKongStreamConf = 13 [json_name = "nginx_kong_stream_conf"];
   float dbUpdateFrequency = 14 [json_name = "db_update_frequency"];
   string nginxUpstreamKeepaliveRequests = 15 [json_name = "nginx_upstream_keepalive_requests"];
-  repeated string cassandraContactPoints = 16 [json_name = "cassandra_contact_points"];
+  repeated google.protobuf.Any cassandraContactPoints = 16 [json_name = "cassandra_contact_points"];
   float cassandraReplFactor = 17 [json_name = "cassandra_repl_factor"];
   string realIpRecursive = 18 [json_name = "real_ip_recursive"];
   string nginxHttpUpstreamKeepaliveTimeout = 19 [json_name = "nginx_http_upstream_keepalive_timeout"];
@@ -72,7 +57,7 @@ message Configuration {
   string adminSslCertDefault = 28 [json_name = "admin_ssl_cert_default"];
   string role = 29 [json_name = "role"];
   string database = 30 [json_name = "database"];
-  repeated string headers = 31 [json_name = "headers"];
+  repeated google.protobuf.Any headers = 31 [json_name = "headers"];
   map<string, google.protobuf.Any> statusListeners = 32 [json_name = "status_listeners"];
   map<string, google.protobuf.Any> nginxAdminDirectives = 33 [json_name = "nginx_admin_directives"];
   string statusAccessLog = 34 [json_name = "status_access_log"];
@@ -89,12 +74,12 @@ message Configuration {
   string clientMaxBodySize = 45 [json_name = "client_max_body_size"];
   map<string, google.protobuf.Any> dnsResolver = 46 [json_name = "dns_resolver"];
   string sslPreferServerCiphers = 47 [json_name = "ssl_prefer_server_ciphers"];
-  repeated string dbCacheWarmupEntities = 48 [json_name = "db_cache_warmup_entities"];
+  repeated google.protobuf.Any dbCacheWarmupEntities = 48 [json_name = "db_cache_warmup_entities"];
   float dnsStaleTtl = 49 [json_name = "dns_stale_ttl"];
   string clusterMtls = 50 [json_name = "cluster_mtls"];
   string statusErrorLog = 51 [json_name = "status_error_log"];
   string nginxStreamSslPreferServerCiphers = 52 [json_name = "nginx_stream_ssl_prefer_server_ciphers"];
-  repeated string proxyListen = 53 [json_name = "proxy_listen"];
+  repeated google.protobuf.Any proxyListen = 53 [json_name = "proxy_listen"];
   string clientSslCertDefault = 54 [json_name = "client_ssl_cert_default"];
   map<string, bool> enabledHeaders = 55 [json_name = "enabled_headers"];
   string adminSslCertKeyDefault = 56 [json_name = "admin_ssl_cert_key_default"];
@@ -116,7 +101,7 @@ message Configuration {
   string nginxHttpUpstreamKeepaliveRequests = 72 [json_name = "nginx_http_upstream_keepalive_requests"];
   bool proxySslEnabled = 73 [json_name = "proxy_ssl_enabled"];
   string clientSslCertKeyDefault = 74 [json_name = "client_ssl_cert_key_default"];
-  repeated string clusterListen = 75 [json_name = "cluster_listen"];
+  repeated google.protobuf.Any clusterListen = 75 [json_name = "cluster_listen"];
   bool pgSsl = 76 [json_name = "pg_ssl"];
   string sslCertKey = 77 [json_name = "ssl_cert_key"];
   float luaSocketPoolSize = 78 [json_name = "lua_socket_pool_size"];
@@ -125,7 +110,7 @@ message Configuration {
   string nginxEventsWorkerConnections = 81 [json_name = "nginx_events_worker_connections"];
   string nginxMainDaemon = 82 [json_name = "nginx_main_daemon"];
   bool dnsNoSync = 83 [json_name = "dns_no_sync"];
-  repeated string adminListen = 84 [json_name = "admin_listen"];
+  repeated google.protobuf.Any adminListen = 84 [json_name = "admin_listen"];
   float cassandraPort = 85 [json_name = "cassandra_port"];
   repeated KeyValuePair nginxMainDirectives = 86 [json_name = "nginx_main_directives"];
   string statusSslCertDefault = 87 [json_name = "status_ssl_cert_default"];
@@ -139,7 +124,7 @@ message Configuration {
   string nginxUpstreamKeepaliveTimeout = 95 [json_name = "nginx_upstream_keepalive_timeout"];
   map<string, google.protobuf.Any> nginxHttpStatusDirectives = 96 [json_name = "nginx_http_status_directives"];
   string dnsHostsfile = 97 [json_name = "dns_hostsfile"];
-  repeated string plugins = 98 [json_name = "plugins"];
+  repeated google.protobuf.Any plugins = 98 [json_name = "plugins"];
   string cassandraUsername = 99 [json_name = "cassandra_username"];
   string nginxErrLogs = 100 [json_name = "nginx_err_logs"];
   string nginxMainWorkerProcesses = 101 [json_name = "nginx_main_worker_processes"];
@@ -149,7 +134,7 @@ message Configuration {
   string nginxKongConf = 105 [json_name = "nginx_kong_conf"];
   bool clientSsl = 106 [json_name = "client_ssl"];
   string sslCertDefault = 107 [json_name = "ssl_cert_default"];
-  repeated string dnsOrder = 108 [json_name = "dns_order"];
+  repeated google.protobuf.Any dnsOrder = 108 [json_name = "dns_order"];
   repeated KeyValuePair nginxProxyDirectives = 109 [json_name = "nginx_proxy_directives"];
   string statusSslCertKeyDefault = 110 [json_name = "status_ssl_cert_key_default"];
   repeated Listener adminListeners = 111 [json_name = "admin_listeners"];
@@ -169,7 +154,7 @@ message Configuration {
   string nginxStreamSslSessionTickets = 125 [json_name = "nginx_stream_ssl_session_tickets"];
   float pgMaxConcurrentQueries = 126 [json_name = "pg_max_concurrent_queries"];
   float dnsNotFoundTtl = 127 [json_name = "dns_not_found_ttl"];
-  repeated string streamListen = 128 [json_name = "stream_listen"];
+  repeated google.protobuf.Any streamListen = 128 [json_name = "stream_listen"];
   float cassandraRefreshFrequency = 129 [json_name = "cassandra_refresh_frequency"];
   string logLevel = 130 [json_name = "log_level"];
   string nginxStreamSslProtocols = 131 [json_name = "nginx_stream_ssl_protocols"];
@@ -191,7 +176,7 @@ message Configuration {
   string pgPassword = 147 [json_name = "pg_password"];
   string nginxPid = 148 [json_name = "nginx_pid"];
   string nginxHttpSslProtocols = 149 [json_name = "nginx_http_ssl_protocols"];
-  repeated string cassandraDataCenters = 150 [json_name = "cassandra_data_centers"];
+  repeated google.protobuf.Any cassandraDataCenters = 150 [json_name = "cassandra_data_centers"];
   string sslSessionTimeout = 151 [json_name = "ssl_session_timeout"];
   string nginxUpstreamKeepalive = 152 [json_name = "nginx_upstream_keepalive"];
   string adminErrorLog = 153 [json_name = "admin_error_log"];
@@ -210,11 +195,5 @@ message NodeInfoResponse {
   string version = 6 [json_name = "version"];
   string nodeId = 7 [json_name = "node_id"];
   string luaVersion = 8 [json_name = "lua_version"];
-  map<string, uint64> prngSeeds = 9 [json_name = "prng_seeds"];
-}
-
-message KongStatusRequest {
-}
-
-message KongStatusResponse {
+  map<string, float> prngSeeds = 9 [json_name = "prng_seeds"];
 }
