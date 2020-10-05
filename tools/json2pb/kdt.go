@@ -5,7 +5,7 @@ import "regexp"
 // Known Data Types
 
 var (
-	listenerDataTypeFields, _ = regexp.Compile("listener|proxy_protocol|reuseport|backlog=\\d+|deferred|ssl|ip|port|http2|bind")
+	listenerDataTypeFields, _ = regexp.Compile("listener|proxy_protocol|reuseport|backlog=.*|deferred|ssl|ip|port|http2|bind")
 )
 
 func keyValuePairMessageDefinition() string {
