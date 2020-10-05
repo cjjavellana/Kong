@@ -1,0 +1,68 @@
+{
+  "database": {
+    "reachable": true
+  },
+  "memory": {
+    "workers_lua_vms": [
+      {
+        "http_allocated_gc": "30.65 MiB",
+        "pid": 64
+      }
+    ],
+    "lua_shared_dicts": {
+      "kong_locks": {
+        "allocated_slabs": "0.06 MiB",
+        "capacity": "8.00 MiB"
+      },
+      "kong": {
+        "allocated_slabs": "0.04 MiB",
+        "capacity": "5.00 MiB"
+      },
+      "kong_process_events": {
+        "allocated_slabs": "0.04 MiB",
+        "capacity": "5.00 MiB"
+      },
+      "kong_db_cache_miss": {
+        "allocated_slabs": "0.08 MiB",
+        "capacity": "12.00 MiB"
+      },
+      "kong_healthchecks": {
+        "allocated_slabs": "0.04 MiB",
+        "capacity": "5.00 MiB"
+      },
+      "kong_cluster_events": {
+        "allocated_slabs": "0.04 MiB",
+        "capacity": "5.00 MiB"
+      },
+      "kong_core_db_cache_miss": {
+        "allocated_slabs": "0.08 MiB",
+        "capacity": "12.00 MiB"
+      },
+      "kong_core_db_cache": {
+        "allocated_slabs": "0.76 MiB",
+        "capacity": "128.00 MiB"
+      },
+      "prometheus_metrics": {
+        "allocated_slabs": "0.04 MiB",
+        "capacity": "5.00 MiB"
+      },
+      "kong_db_cache": {
+        "allocated_slabs": "0.76 MiB",
+        "capacity": "128.00 MiB"
+      },
+      "kong_rate_limiting_counters": {
+        "allocated_slabs": "0.08 MiB",
+        "capacity": "12.00 MiB"
+      }
+    }
+  },
+  "server": {
+    "connections_writing": 1,
+    "total_requests": 29,
+    "connections_handled": 27,
+    "connections_accepted": 27,
+    "connections_reading": 0,
+    "connections_active": 1,
+    "connections_waiting": 0
+  }
+}

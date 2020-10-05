@@ -20,6 +20,20 @@ func New(adminUrl string) *KongAdminProxy {
 	}
 }
 
+func (s *KongAdminProxy) GetStatus(ctx context.Context, in *ipc.KongStatusRequest) (*ipc.KongStatusResponse, error) {
+	status, _ := s.kongAdmin.GetStatus()
+
+	unmarshaler := jsonpb.Unmarshaler{}
+	unmarshaler.AllowUnknownFields = true
+
+	kongStatus := &ipc.KongStatusResponse{}
+	if err := unmarshaler.Unmarshal(strings.NewReader(status), kongStatus); err != nil {
+		return nil, err
+	}
+
+	return kongStatus, nil
+}
+
 func (s *KongAdminProxy) NodeInfo(ctx context.Context, in *ipc.NodeInfoRequest) (*ipc.NodeInfoResponse, error) {
 	nodeInfoJson, _ := s.kongAdmin.NodeInfo()
 

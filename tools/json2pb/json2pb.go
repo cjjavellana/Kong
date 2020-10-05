@@ -30,6 +30,12 @@ type Message struct {
 	Attribute   []MessageAttribute
 }
 
+var (
+	// Elements in a array dont have names. We use this counter to give them a generic name
+	// e.g. Object1, Object2, Object3, etc
+	genericObjectCounter = 1
+)
+
 func main() {
 	args := getFileToReadFromArgs()
 	log.Printf("Generating Protobuf Schema from: %s\n", args.jsonFile)
@@ -43,7 +49,7 @@ func main() {
 	}
 
 	rootMessage := Message{MessageName: "RootMessage"}
-	createPBMessageDefinition(&result, &rootMessage)
+	createMessageDefinition(&result, &rootMessage)
 	prettyPrint(&rootMessage, 0)
 }
 
@@ -80,8 +86,8 @@ func prettyPrint(message *Message, indent int) {
 //		}
 //	}
 //
-//	@param message is an element that we will attach a new Message element to.
-func createPBMessageDefinition(jsonElement *map[string]interface{}, message *Message) {
+//	@param message is an element that we will attach the field definitions to.
+func createMessageDefinition(jsonElement *map[string]interface{}, message *Message) {
 
 	for k, elem := range *jsonElement {
 		v := reflect.ValueOf(elem)
@@ -89,17 +95,27 @@ func createPBMessageDefinition(jsonElement *map[string]interface{}, message *Mes
 		switch v.Kind() {
 		case reflect.Slice:
 			log.Println(k, " :: ", elem)
-			e := elem.([]interface{})
-			if len(e) == 0 {
+			genericElementSlice := elem.([]interface{})
+			if len(genericElementSlice) == 0 {
 				// If it's just an array with no element. Assume string array.
 				// Generate a protobuf message definition as follows:
 				// repeat string fieldName = <ordinal>;
-				addRepeatedField(k, message, "string")
+				addRepeatedField(k, message, "string", nil)
 			} else {
-				isArrayOfSimpleDataTypes, dataType := isKnownArrayDataType(&e)
-				log.Println(k, " :: ", isArrayOfSimpleDataTypes, " :: ", dataType)
-				if isArrayOfSimpleDataTypes {
-					addRepeatedField(k, message, dataType)
+				// We assume that an array is composed of a homogeneous data type.
+				// Thus we only pass the address of the first element to check
+				isAnArrayOfKnownDataTypes, dataType := isKnownDataType(&genericElementSlice[0])
+				log.Println(k, " :: ", isAnArrayOfKnownDataTypes, " :: ", dataType)
+				if isAnArrayOfKnownDataTypes {
+					addRepeatedField(k, message, dataType, nil)
+				} else {
+					genericEntityName := createGenericEntityName()
+					elementAsMap := genericElementSlice[0].(map[string]interface{})
+
+					child := Message{ MessageName: genericEntityName }
+					createMessageDefinition(&elementAsMap, &child)
+
+					addRepeatedField(k, message, genericEntityName, &child)
 				}
 			}
 		// Simple types
@@ -135,19 +151,18 @@ func createPBMessageDefinition(jsonElement *map[string]interface{}, message *Mes
 				message.Attribute = append(message.Attribute, attr)
 
 			} else {
-				childMessage := Message{
-					MessageName: toCamelCaseWithFirstCharCapitalized(k),
-				}
+				messageName := toCamelCaseWithFirstCharCapitalized(k)
+				fieldName := toCamelCaseWithFirstCharInLowerCase(k)
 
-				createPBMessageDefinition(&e, &childMessage)
+				child := Message{ MessageName: messageName }
+				createMessageDefinition(&e, &child)
 
-				// append the newly created message to its parent
-				attr := MessageAttribute{
-					Type:       toCamelCaseWithFirstCharCapitalized(k),
-					Name:       toCamelCaseWithFirstCharInLowerCase(k),
+				attr := MessageAttribute {
+					Type:       messageName,
+					Name:       fieldName,
 					Ordinal:    len(message.Attribute) + 1,
 					JSONName:   k,
-					MessageDef: &childMessage,
+					MessageDef: &child,
 				}
 
 				message.Attribute = append(message.Attribute, attr)
@@ -158,46 +173,50 @@ func createPBMessageDefinition(jsonElement *map[string]interface{}, message *Mes
 	}
 }
 
-func addRepeatedField(jsonName string, message *Message, dataType string) {
+func addRepeatedField(jsonName string, message *Message, dataType string, messageDef *Message) {
 	attr := MessageAttribute{
 		Type:       fmt.Sprintf("repeated %s", dataType),
 		Name:       toCamelCaseWithFirstCharInLowerCase(jsonName),
 		Ordinal:    len(message.Attribute) + 1,
 		JSONName:   jsonName,
-		MessageDef: nil,
+		MessageDef: messageDef,
 	}
 
 	message.Attribute = append(message.Attribute, attr)
+}
+
+func createGenericEntityName() string {
+	genericMessageName := fmt.Sprint("Object", genericObjectCounter)
+	genericObjectCounter++
+	return genericMessageName
 }
 
 // Returns true if all of the array elements are of the same datatype
 // and is one of: string, float
 //
 // Under normal circumstances, an array is composed of a single datatype.
-func isKnownArrayDataType(element *[]interface{}) (bool, string) {
+func isKnownDataType(v *interface{}) (bool, string) {
 	var expectedKind reflect.Kind
-	for _, v := range *element {
-		kind := reflect.ValueOf(v).Kind()
+	kind := reflect.ValueOf(*v).Kind()
 
-		switch kind {
-		case reflect.Map:
-			m := v.(map[string]interface{})
+	switch kind {
+	case reflect.Map:
+		// cast the value pointed to by `v` to map[string]interface{}
+		m := (*v).(map[string]interface{})
 
-			if isKeyValuePairMap(m) {
-				return true, "KeyValuePair"
-			}
-
-			if isListener(m) {
-				return true, "Listener"
-			}
-
-		case reflect.String, reflect.Float64, reflect.Float32, reflect.Uint8:
-			return true, kindToProtoBufType(expectedKind)
-		default:
-			// kind is not one of datatype defined above
-			return false, ""
+		if isKeyValuePairMap(m) {
+			return true, "KeyValuePair"
 		}
 
+		if isListener(m) {
+			return true, "Listener"
+		}
+
+	case reflect.String, reflect.Float64, reflect.Float32, reflect.Uint8:
+		return true, kindToProtoBufType(expectedKind)
+	default:
+		// kind is not one of datatype defined above
+		return false, ""
 	}
 
 	return false, ""
@@ -208,6 +227,11 @@ func canBeRepresentedAsProtobufMap(element *map[string]interface{}) (bool, strin
 	var expectedKind reflect.Kind
 	for _, v := range *element {
 		kind := reflect.ValueOf(v).Kind()
+
+		// Nested map?
+		if kind == reflect.Map {
+			return false, ""
+		}
 
 		// set expected kind to the first element
 		// that we see.
