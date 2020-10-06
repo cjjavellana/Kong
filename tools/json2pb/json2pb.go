@@ -16,20 +16,6 @@ type Args struct {
 	outputFile string
 }
 
-// Represents an attribute of the message
-type MessageAttribute struct {
-	Type       interface{}
-	Name       string
-	Ordinal    int
-	JSONName   string
-	MessageDef *Message
-}
-
-type Message struct {
-	MessageName string
-	Attribute   []MessageAttribute
-}
-
 var (
 	// Elements in a array dont have names. We use this counter to give them a generic name
 	// e.g. Object1, Object2, Object3, etc
@@ -100,35 +86,27 @@ func createMessageDefinition(jsonElement *map[string]interface{}, message *Messa
 				// If it's just an array with no element. Assume string array.
 				// Generate a protobuf message definition as follows:
 				// repeat string fieldName = <ordinal>;
-				addRepeatedField(k, message, "string", nil)
+				message.addAttribute(k, "string", nil, true)
 			} else {
 				// We assume that an array is composed of a homogeneous data type.
 				// Thus we only pass the address of the first element to check
 				isAnArrayOfKnownDataTypes, dataType := isKnownDataType(&genericElementSlice[0])
 				log.Println(k, " :: ", isAnArrayOfKnownDataTypes, " :: ", dataType)
 				if isAnArrayOfKnownDataTypes {
-					addRepeatedField(k, message, dataType, nil)
+					message.addAttribute(k, dataType, nil, true)
 				} else {
 					genericEntityName := createGenericEntityName()
 					elementAsMap := genericElementSlice[0].(map[string]interface{})
 
-					child := Message{ MessageName: genericEntityName }
+					child := Message{MessageName: genericEntityName}
 					createMessageDefinition(&elementAsMap, &child)
 
-					addRepeatedField(k, message, genericEntityName, &child)
+					message.addAttribute(k, genericEntityName, &child, true)
 				}
 			}
 		// Simple types
 		case reflect.String, reflect.Float64, reflect.Bool:
-			attr := MessageAttribute{
-				Type:       kindToProtoBufType(v.Kind()),
-				Name:       toCamelCaseWithFirstCharInLowerCase(k),
-				Ordinal:    len(message.Attribute) + 1,
-				JSONName:   k,
-				MessageDef: nil,
-			}
-
-			message.Attribute = append(message.Attribute, attr)
+			message.addAttribute(k, kindToProtoBufType(v.Kind()), nil, false)
 		case reflect.Map:
 			// We've encountered a map. Check whether we can represent this as
 			// map<string, type> in protobuf.
@@ -139,50 +117,20 @@ func createMessageDefinition(jsonElement *map[string]interface{}, message *Messa
 
 			canBeRepresentedAsMap, protoBufDataType := canBeRepresentedAsProtobufMap(&e)
 			if canBeRepresentedAsMap {
-				// append the newly created message to its parent
-				attr := MessageAttribute{
-					Type:       fmt.Sprintf("map<string, %s>", protoBufDataType),
-					Name:       toCamelCaseWithFirstCharInLowerCase(k),
-					Ordinal:    len(message.Attribute) + 1,
-					JSONName:   k,
-					MessageDef: nil,
-				}
-
-				message.Attribute = append(message.Attribute, attr)
-
+				dataType := fmt.Sprintf("map<string, %s>", protoBufDataType)
+				message.addAttribute(k, dataType, nil, false)
 			} else {
-				messageName := toCamelCaseWithFirstCharCapitalized(k)
-				fieldName := toCamelCaseWithFirstCharInLowerCase(k)
+				messageName := asCamelCaseClassName(k)
 
-				child := Message{ MessageName: messageName }
+				child := Message{MessageName: messageName}
 				createMessageDefinition(&e, &child)
 
-				attr := MessageAttribute {
-					Type:       messageName,
-					Name:       fieldName,
-					Ordinal:    len(message.Attribute) + 1,
-					JSONName:   k,
-					MessageDef: &child,
-				}
-
-				message.Attribute = append(message.Attribute, attr)
+				message.addAttribute(k, messageName, &child, false)
 			}
 		default:
 			log.Printf("No handler for %s, Type %s\n", k, v.Kind())
 		}
 	}
-}
-
-func addRepeatedField(jsonName string, message *Message, dataType string, messageDef *Message) {
-	attr := MessageAttribute{
-		Type:       fmt.Sprintf("repeated %s", dataType),
-		Name:       toCamelCaseWithFirstCharInLowerCase(jsonName),
-		Ordinal:    len(message.Attribute) + 1,
-		JSONName:   jsonName,
-		MessageDef: messageDef,
-	}
-
-	message.Attribute = append(message.Attribute, attr)
 }
 
 func createGenericEntityName() string {
@@ -262,33 +210,7 @@ func kindToProtoBufType(kind reflect.Kind) string {
 	return "string"
 }
 
-func toCamelCaseWithFirstCharCapitalized(s string) string {
-	return toCamelCase(s, false)
-}
 
-func toCamelCaseWithFirstCharInLowerCase(s string) string {
-	return toCamelCase(s, true)
-}
-
-func Split(r rune) bool {
-	return r == '_' || r == '-'
-}
-
-func toCamelCase(s string, isFirstCharLowerCase bool) string {
-	var attrNameTokens []string
-	for index, token := range strings.FieldsFunc(s, Split) {
-
-		if isFirstCharLowerCase && index == 0 {
-			token = strings.ToLower(token)
-		} else {
-			token = strings.Title(token)
-		}
-
-		attrNameTokens = append(attrNameTokens, token)
-	}
-
-	return strings.Join(attrNameTokens, "")
-}
 
 func readFile(fileToRead string) ([]byte, error) {
 	jsonFile, err := os.Open(fileToRead)
